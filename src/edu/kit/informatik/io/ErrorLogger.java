@@ -7,4 +7,8 @@ public class ErrorLogger {
     public static String format(String string) {
         return String.format(ERROR_FORMAT, string);
     }
+
+    private ErrorLogger() {
+
+    }
 }

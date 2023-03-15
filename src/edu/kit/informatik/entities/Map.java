@@ -26,11 +26,15 @@ public class Map {
             streets.add(new Street(streetsString.get(i), i));
         }
         for (String crossingString : crossingStrings) {
-            crossings.add(new Crossing(crossingString));
+            crossings.add(new Crossing(crossingString, streets));
         }
         for (String carsString : carsStrings) {
             cars.add(new Car(carsString));
         }
+    }
+
+    public boolean haveCarsSafeDistance(Car first, Car second) {
+        return Math.abs(second.getPosition() - first.getPosition()) >= MINIMAL_DISTANCE;
     }
 
     public void checkAndInitMap() {
@@ -48,6 +52,10 @@ public class Map {
             if (!valid)
                 throw new SimulatorException(String.format(NOT_CONNECTED_TO_STREET, crossing.getId()));
         }
+    }
+
+    public int getMinimalDistance() {
+        return MINIMAL_DISTANCE;
     }
 
     private void positionCars() {
@@ -73,7 +81,7 @@ public class Map {
         return carsOnStreet;
     }
 
-    private Street getStreetFromId(int id) {
+    public Street getStreetFromId(int id) {
         for (Street street : streets) {
             if (street.getId() == id) return street;
         }
@@ -83,6 +91,14 @@ public class Map {
     private Crossing getCrossingFromId(int id) {
         for (Crossing crossing : crossings) {
             if (crossing.getId() == id) return crossing;
+        }
+        throw new SimulatorException(String.format(NOT_FOUND, CROSSING, id));
+    }
+
+    public Crossing getCrossingFromIncomingStreetId(int id) {
+        for (Crossing crossing : crossings) {
+            if (crossing.getIncomingStreets().contains(id))
+                return crossing;
         }
         throw new SimulatorException(String.format(NOT_FOUND, CROSSING, id));
     }
