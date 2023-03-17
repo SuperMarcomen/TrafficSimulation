@@ -20,7 +20,6 @@ public class LoadCommand extends InputCommand {
     public LoadCommand(Notifier notifier) {
         super(ARGUMENT_REGEX, CORRECT_FORMAT);
         this.notifier = notifier;
-        System.out.println();
     }
 
     @Override

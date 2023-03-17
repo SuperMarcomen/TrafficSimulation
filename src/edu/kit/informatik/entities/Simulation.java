@@ -1,7 +1,5 @@
 package edu.kit.informatik.entities;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -25,58 +23,35 @@ public class Simulation {
             sortCarsByPosition(cars);
             for (Car car : cars) {
                 if (car.isUpdated()) continue;
+                int position = car.getPosition();
                 updateCarSpeed(car, street);
                 simulateCar(car, street, car.getSpeed());
                 car.setUpdated(true);
-                /*int newPosition = car.getPosition() + speed;
-                int restMovement = 0;
-                if (newPosition > streetLength) {
-                    restMovement = newPosition - streetLength;
-                    newPosition = streetLength;
+                if (car.getPosition() == position || (position == street.getLength() && car.hasTurned() && car.getPosition() == 0)) {
+                    car.setSpeed(0);
                 }
-
-                Car precedingCar = getPrecedingCar(car, cars);
-                if (precedingCar == null) {
-                    if (restMovement == 0) {
-                        car.setPosition(newPosition);
-                    } else { // car has to turn
-                        Crossing crossing = map.getCrossingFromIncomingStreetId(street.getId());
-                        int desiredDirection = car.getDesiredDirection();
-                        boolean increase = true;
-                        if (desiredDirection > crossing.getOutgoingStreets().size() - 1) {
-                            desiredDirection = 0;
-                            increase = false;
-                        }
-
-                        Street newStreet = map.getStreetFromId(crossing.getOutgoingStreets().get(desiredDirection));
-                        List<Car> carsOnNewStreet = map.getCarsOnStreet(newStreet.getId());
-                        Car lastCar = carsOnNewStreet.get(carsOnNewStreet.size() - 1);
-                        if (!crossing.isCrossable()) {
-                            car.setPosition(streetLength);
-                            continue;
-                        }
-                        if (map.haveCarsSafeDistance(car, lastCar)) {
-                            car.setStreetId(desiredDirection);
-                            car.setPosition(restMovement);
-                            if (increase) car.setDesiredDirection(car.getDesiredDirection() + 1);
-                        } else { // car stays in street
-                            car.setPosition(streetLength);
-                        }
-                    }
-                } else {
-                    if (map.haveCarsSafeDistance(car, precedingCar)) {
-                        car.setPosition(newPosition);
-                    } else {
-                        car.setPosition(precedingCar.getPosition() - map.getMinimalDistance());
-                    }
-                }*/
             }
+        }
+
+        for (Crossing crossing : map.getCrossings()) {
+            updateCrossing(crossing);
         }
 
         for (Car car : map.getCars()) {
             car.setUpdated(false);
             car.setTurned(false);
+            car.setOvertaken(false);
         }
+    }
+
+    private void updateCrossing(Crossing crossing) {
+        if (crossing.getDuration() == 0) return;
+        crossing.setTicks(crossing.getTicks() - 1);
+        if (crossing.getTicks() > 0) return;
+        crossing.setTicks(crossing.getDuration());
+        crossing.setGreenStreetId(crossing.getGreenStreetId() + 1);
+        if (crossing.getGreenStreetId() <= crossing.getIncomingStreets().size() - 1) return;
+        crossing.setGreenStreetId(0);
     }
 
     private void updateCarSpeed(Car car, Street street) {
@@ -101,7 +76,7 @@ public class Simulation {
             distanceToDrive -= distanceOnCurrentStreet;
         }
 
-        if (car.hasTurned()) return;
+        if (car.hasTurned() || car.hasOvertaken()) return;
         boolean turned = turnCar(car, street);
         if (!turned) return;
 
@@ -110,13 +85,11 @@ public class Simulation {
 
     private boolean turnCar(Car car, Street street) {
         Crossing crossing = map.getCrossingFromIncomingStreetId(street.getId());
-        if (!crossing.isCrossable()) return false;
+        if (!crossing.hasStreetGreen(street.getId())) return false;
 
         int desiredDirection = car.getDesiredDirection();
-        boolean increase = true;
         if (desiredDirection > crossing.getOutgoingStreets().size() - 1) {
             desiredDirection = 0;
-            increase = false;
         }
 
         Street newStreet = map.getStreetFromId(crossing.getOutgoingStreets().get(desiredDirection));
@@ -129,8 +102,10 @@ public class Simulation {
 
         car.setStreetId(newStreet.getId());
         car.setPosition(0);
-        desiredDirection += increase ? 1 : 0;
-        car.setDesiredDirection(desiredDirection);
+        int newDesiredDirection = car.getDesiredDirection();
+        newDesiredDirection++;
+        if (newDesiredDirection == 3) newDesiredDirection = 0;
+        car.setDesiredDirection(newDesiredDirection);
         car.setTurned(true);
         return true;
     }
@@ -138,58 +113,66 @@ public class Simulation {
     private int drive(Car car, int distance, Street street) {
         // distance + car.getPosition() <= street.getLength()
         List<Car> carsOnStreet = map.getCarsOnStreet(street.getId());
-        Car precedingCar;
+        Car[] precedingCars;
         int restingDistance = distance;
         int newPosition = car.getPosition();
         do {
-            precedingCar = getPrecedingCar(car, carsOnStreet);
-            if (precedingCar == null) {
-                newPosition += restingDistance;
-                restingDistance = 0;
-                break;
-            }
-            if ((precedingCar.getPosition() - map.getMinimalDistance()) >= (newPosition + restingDistance)) {
+            precedingCars = getTwoPrecedingCars(car, carsOnStreet);
+            if (precedingCars[0] == null) {
                 newPosition += restingDistance;
                 restingDistance = 0;
                 break;
             }
 
-            if (!street.isMultipleLane()) {
-                newPosition = precedingCar.getPosition() - map.getMinimalDistance();
-                restingDistance -= newPosition - car.getPosition();
-                break;
-            }
-
-            newPosition = precedingCar.getPosition();
-            int restingDistanceAfterOvertake = restingDistance - precedingCar.getPosition() - car.getPosition();
-
-            if (restingDistanceAfterOvertake < map.getMinimalDistance()) {
-                newPosition = precedingCar.getPosition() - map.getMinimalDistance();
-                restingDistance -= newPosition - car.getPosition();
-                break;
-            }
-
-            Car newCar = car.clone();
-            newCar.setPosition(newPosition);
-            int newRestingDistance = drive(newCar, restingDistanceAfterOvertake, street);
-            if (newRestingDistance == 0) {
+            if ((precedingCars[0].getPosition() - map.getMinimalDistance()) >= (newPosition + restingDistance)) {
                 newPosition += restingDistance;
                 restingDistance = 0;
                 break;
             }
-            int positionAfterOvertake = restingDistanceAfterOvertake - newRestingDistance;
 
-            if (positionAfterOvertake - newPosition < map.getMinimalDistance()) {
-                newPosition = precedingCar.getPosition() - map.getMinimalDistance();
+            if (!street.isMultipleLane() || car.hasOvertaken()) {
+                newPosition = precedingCars[0].getPosition() - map.getMinimalDistance();
                 restingDistance -= newPosition - car.getPosition();
                 break;
             }
 
+            if ((newPosition + restingDistance) - map.getMinimalDistance() < precedingCars[0].getPosition()) {
+                newPosition = precedingCars[0].getPosition() - map.getMinimalDistance();
+                restingDistance -= newPosition - car.getPosition();
+                break;
+            }
+
+            if (precedingCars[1] == null) {
+                newPosition += restingDistance;
+                restingDistance = 0;
+                break;
+            }
+
+            int distanceBetweenNextCars = precedingCars[1].getPosition() - precedingCars[0].getPosition();
+            if (distanceBetweenNextCars < 2 * map.getMinimalDistance()) {
+                newPosition = precedingCars[0].getPosition() - map.getMinimalDistance();
+                restingDistance -= newPosition - car.getPosition();
+                break;
+            }
+
+            car.setOvertaken(true);
+            int distanceDriven = precedingCars[0].getPosition() - car.getPosition() + map.getMinimalDistance();
+            restingDistance = drive(car, distance - distanceDriven, street);
+            newPosition += distance - restingDistance;
 
         } while (restingDistance > 0);
 
         car.setPosition(newPosition);
         return restingDistance;
+    }
+
+    private Car[] getTwoPrecedingCars(Car car, List<Car> cars) {
+        Car[] precedingCars = new Car[2];
+        precedingCars[0] = getPrecedingCar(car, cars);
+        if (precedingCars[0] != null) {
+            precedingCars[1] = getPrecedingCar(precedingCars[0], cars);
+        }
+        return precedingCars;
     }
 
     private Car getPrecedingCar(Car car, List<Car> cars) {

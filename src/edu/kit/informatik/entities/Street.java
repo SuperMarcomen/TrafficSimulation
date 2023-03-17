@@ -18,7 +18,7 @@ public class Street extends SimulationEntity {
         startNode = parseNumber(args[0], ID, 0, Integer.MAX_VALUE);
         endNode = parseNumber(args[1], ID, 0, Integer.MAX_VALUE);
         length = parseNumber(args[2], LENGTH, 10, 10000);
-        multipleLane = parseNumber(args[3], STREET_TYPE, 1, 2) == 0;
+        multipleLane = parseNumber(args[3], STREET_TYPE, 1, 2) == 2;
         maxSpeed = parseNumber(args[4], SPEED, 5, 40);
     }
 

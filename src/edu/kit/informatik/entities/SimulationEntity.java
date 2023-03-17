@@ -14,9 +14,9 @@ public abstract class SimulationEntity {
     private static final String INPUT_NOT_VALID_NUMBER = "%s is not a valid number for the %s!";
 
 
-    public SimulationEntity(String regex, String arguments) {
-        if (arguments.matches(regex)) {
-            throw new SimulatorException(INCORRECT_INPUT);
+    public SimulationEntity(String arguments, String regex) {
+        if (!arguments.matches(regex)) {
+            throw new SimulatorException(String.format(INCORRECT_INPUT, arguments));
         }
     }
 

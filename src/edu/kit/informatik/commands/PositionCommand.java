@@ -2,6 +2,7 @@ package edu.kit.informatik.commands;
 
 import edu.kit.informatik.entities.Car;
 import edu.kit.informatik.entities.Simulation;
+import edu.kit.informatik.io.ErrorLogger;
 import edu.kit.informatik.news.Observer;
 
 import java.util.List;
@@ -24,7 +25,7 @@ public class PositionCommand extends InputCommand implements Observer {
 
     @Override
     protected List<String> execute() {
-        if (simulation == null) return List.of(NO_SIMULATION);
+        if (simulation == null) return List.of(ErrorLogger.format(NO_SIMULATION));
         int id = parseInput(input, 0);
         Car car = simulation.getMap().getCarFromId(id);
         String string = String.format(POSITION, car.getId(), car.getStreetId(), car.getSpeed(), car.getPosition());

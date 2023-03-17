@@ -1,6 +1,7 @@
 package edu.kit.informatik.commands;
 
 import edu.kit.informatik.entities.Simulation;
+import edu.kit.informatik.io.ErrorLogger;
 import edu.kit.informatik.news.Observer;
 
 import java.util.List;
@@ -21,7 +22,7 @@ public class SimulateCommand extends InputCommand implements Observer {
 
     @Override
     protected List<String> execute() {
-        if (simulation == null) return List.of(NO_SIMULATION);
+        if (simulation == null) return List.of(ErrorLogger.format(NO_SIMULATION));
         int ticks = parseInput(input, 1);
         simulation.simulate(ticks);
         return List.of("READY");

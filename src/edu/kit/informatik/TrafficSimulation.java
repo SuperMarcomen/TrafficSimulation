@@ -3,6 +3,7 @@ package edu.kit.informatik;
 import edu.kit.informatik.commands.Commands;
 import edu.kit.informatik.commands.LoadCommand;
 import edu.kit.informatik.commands.PositionCommand;
+import edu.kit.informatik.commands.QuitCommand;
 import edu.kit.informatik.commands.SimulateCommand;
 import edu.kit.informatik.exceptions.SimulatorException;
 import edu.kit.informatik.io.ErrorLogger;
@@ -25,6 +26,7 @@ public final class TrafficSimulation {
         commands.registerSubCommand("load", new LoadCommand(notifier));
         commands.registerSubCommand("position", positionCommand);
         commands.registerSubCommand("simulate", simulateCommand);
+        commands.registerSubCommand("quit", new QuitCommand(this));
         running = true;
     }
 
@@ -45,6 +47,10 @@ public final class TrafficSimulation {
         } catch (SimulatorException exception) {
             return List.of(ErrorLogger.format(exception.getMessage()));
         }
+    }
+
+    public void stop() {
+        running = false;
     }
 
     /**

@@ -11,10 +11,12 @@ public class Car extends SimulationEntity implements Cloneable {
     private int position;
     private boolean updated;
     private boolean turned;
+    private boolean overtake;
     private int desiredDirection;
 
     public Car(String arguments) {
         super(arguments, ARGUMENT_REGEX);
+        // TODO magic numbers
         String[] args = arguments.split(",");
         id = parseNumber(args[0], ID, 0, Integer.MAX_VALUE);
         streetId = parseNumber(args[1], ID, 0, Integer.MAX_VALUE);
@@ -22,6 +24,8 @@ public class Car extends SimulationEntity implements Cloneable {
         acceleration = parseNumber(args[3], ACCELERATION, 1, 10);
         speed = 0;
         updated = false;
+        turned = false;
+        overtake = false;
         desiredDirection = 0;
     }
 
@@ -83,6 +87,14 @@ public class Car extends SimulationEntity implements Cloneable {
 
     public void setDesiredDirection(int desiredDirection) {
         this.desiredDirection = desiredDirection;
+    }
+
+    public boolean hasOvertaken() {
+        return overtake;
+    }
+
+    public void setOvertaken(boolean overtake) {
+        this.overtake = overtake;
     }
 
     @Override
