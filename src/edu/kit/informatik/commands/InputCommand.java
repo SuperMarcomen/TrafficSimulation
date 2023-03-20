@@ -37,6 +37,14 @@ public abstract class InputCommand extends Command {
         return ErrorLogger.format(String.format(INPUT_ERROR_MESSAGE, correctFormat));
     }
 
+    /**
+     * Parses a numeric input from a String to an integer and checks its validity.
+     *
+     * @param input - The numeric input to parse
+     * @param min - The minimal accepted value of the input
+     * @return the parsed input
+     * @throws SimulatorException if the number is not in the accepted range
+     */
     public int parseInput(String input, int min) {
         try {
             int number = Integer.parseInt(input);

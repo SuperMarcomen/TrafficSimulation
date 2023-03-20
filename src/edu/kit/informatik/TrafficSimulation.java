@@ -11,11 +11,21 @@ import edu.kit.informatik.news.Notifier;
 
 import java.util.List;
 
+/**
+ * A class that handles the input and output of a traffic
+ * simulation and registers the needed commands.
+ *
+ * @author uswry
+ * @version 1.0
+ */
 public final class TrafficSimulation {
 
     private final Commands commands;
     private boolean running;
 
+    /**
+     * Initializes the needed variables and registers the commands.
+     */
     public TrafficSimulation() {
         commands = new Commands();
         Notifier notifier = new Notifier();
@@ -49,6 +59,9 @@ public final class TrafficSimulation {
         }
     }
 
+    /**
+     * Stops the traffic simulation.
+     */
     public void stop() {
         running = false;
     }

@@ -1,14 +1,26 @@
 package edu.kit.informatik.io;
 
-public class ErrorLogger {
+/**
+ * Formats error messages with a prefix.
+ *
+ * @author uswry
+ * @version 1.0
+ */
+public final class ErrorLogger {
 
-    private final static String ERROR_FORMAT = "Error: %s";
-
-    public static String format(String string) {
-        return String.format(ERROR_FORMAT, string);
-    }
+    private static final String ERROR_FORMAT = "Error: %s";
 
     private ErrorLogger() {
 
+    }
+
+    /**
+     * Formats the string to look like an error.
+     *
+     * @param string - The string to be formatted
+     * @return the formatted error string
+     */
+    public static String format(String string) {
+        return String.format(ERROR_FORMAT, string);
     }
 }

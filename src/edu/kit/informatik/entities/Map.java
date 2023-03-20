@@ -5,28 +5,44 @@ import edu.kit.informatik.exceptions.SimulatorException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A class that represents the map of a simulation.
+ * It contains the needed elements like streets, crossings and cars.
+ *
+ * @author uswry
+ * @version 1.0
+ */
 public class Map {
 
     private static final int MINIMAL_DISTANCE = 10;
-    public static final String TOO_MANY_CARS = "There are too many cars on street %d";
-    public static final String STREET_SAME_START_END = "The street %d has the same starting and ending node!";
-    public static final String NOT_FOUND = "No %s was found with the id %d";
-    public static final String STREET = "street";
-    public static final String CROSSING = "crossing";
-    public static final String CAR = "car";
-    public static final int MIN_TICK_DURATION = 3;
-    public static final int MAX_STREETS = 4;
-    public static final String INVALID_CROSSING_DURATION = "The crossing %d has an invalid duration: %d!";
-    public static final String NON_EXISTING_NODE = "Street %d is connected to a non-existing node";
-    public static final String INVALID_AMOUNT_OF_INCOMING_STREETS = "Crossing %d has an invalid amount of incoming streets";
-    public static final String INVALID_AMOUNT_OF_OUTGOING_STREETS = "Crossing %d has an invalid amount of outgoing streets";
-    public static final String CROSSING_ID_NOT_UNIQUE = "Crossing id %d is not unique";
-    public static final String CAR_ID_NOT_UNIQUE = "Crossing id %d is not unique";
-    public static final String CAR_NON_EXISTING_STREET = "Car %d is placed on a non-existing street!";
+    private static final String TOO_MANY_CARS = "There are too many cars on street %d";
+    private static final String STREET_SAME_START_END = "The street %d has the same starting and ending node!";
+    private static final String NOT_FOUND = "No %s was found with the id %d";
+    private static final String STREET = "street";
+    private static final String CROSSING = "crossing";
+    private static final String CAR = "car";
+    private static final int MIN_TICK_DURATION = 3;
+    private static final int MAX_STREETS = 4;
+    private static final String INVALID_CROSSING_DURATION = "The crossing %d has an invalid duration: %d!";
+    private static final String NON_EXISTING_NODE = "Street %d is connected to a non-existing node";
+    private static final String INVALID_AMOUNT_OF_INCOMING_STREETS
+            = "Crossing %d has an invalid amount of incoming streets";
+    private static final String INVALID_AMOUNT_OF_OUTGOING_STREETS
+            = "Crossing %d has an invalid amount of outgoing streets";
+    private static final String CROSSING_ID_NOT_UNIQUE = "Crossing id %d is not unique";
+    private static final String CAR_ID_NOT_UNIQUE = "Crossing id %d is not unique";
+    private static final String CAR_NON_EXISTING_STREET = "Car %d is placed on a non-existing street!";
     private final List<Street> streets;
     private final List<Crossing> crossings;
     private final List<Car> cars;
 
+    /**
+     * Initializes the needed variables and parses the input strings.
+     *
+     * @param streetsString - The strings representing the streets
+     * @param crossingStrings - The strings representing the crossings
+     * @param carsStrings - The strings representing the cars
+     */
     public Map(List<String> streetsString, List<String> crossingStrings, List<String> carsStrings) {
         streets = new ArrayList<>();
         crossings = new ArrayList<>();
@@ -42,11 +58,17 @@ public class Map {
         }
     }
 
+    /**
+     * Checks if the map is correct and throws an exception if
+     * there is an error.
+     *
+     * @throws SimulatorException if an error is found while checking the validity of the map
+     */
     public void checkAndInitMap() {
         positionCars();
         for (Street street : streets) {
             if (street.getStartNode() == street.getEndNode()) {
-                throw new SimulatorException(String.format(STREET_SAME_START_END, street.getId()));
+                throw new SimulatorException(STREET_SAME_START_END.formatted(street.getId()));
             }
 
             boolean startsExist = false;
@@ -101,8 +123,51 @@ public class Map {
         }
     }
 
+    /**
+     * Returns the minimal distance.
+     * @return the minimal distance
+     */
     public int getMinimalDistance() {
         return MINIMAL_DISTANCE;
+    }
+
+    /**
+     * Returns the cars that are positioned on the given street.
+     * @param streetId - The id of the street where the cars are
+     * @return the cars that are positioned on the given street
+     */
+    public List<Car> getCarsOnStreet(int streetId) {
+        List<Car> carsOnStreet = new ArrayList<>();
+        for (Car car : cars) {
+            if (car.getStreetId() != streetId) continue;
+            carsOnStreet.add(car);
+        }
+        return carsOnStreet;
+    }
+
+    /**
+     * Returns a street from its id.
+     * @param id - The id of the street
+     * @return a street from its id
+     */
+    public Street getStreetFromId(int id) {
+        for (Street street : streets) {
+            if (street.getId() == id) return street;
+        }
+        throw new SimulatorException(String.format(NOT_FOUND, STREET, id));
+    }
+
+    /**
+     * Returns a crossing from the id of an incoming street.
+     * @param id - The id of the incoming street
+     * @return a crossing from the id of an incoming street
+     */
+    public Crossing getCrossingFromIncomingStreetId(int id) {
+        for (Crossing crossing : crossings) {
+            if (crossing.getIncomingStreets().contains(id))
+                return crossing;
+        }
+        throw new SimulatorException(String.format(NOT_FOUND, CROSSING, id));
     }
 
     private void positionCars() {
@@ -119,30 +184,11 @@ public class Map {
         }
     }
 
-    public List<Car> getCarsOnStreet(int streetId) {
-        List<Car> carsOnStreet = new ArrayList<>();
-        for (Car car : cars) {
-            if (car.getStreetId() != streetId) continue;
-            carsOnStreet.add(car);
-        }
-        return carsOnStreet;
-    }
-
-    public Street getStreetFromId(int id) {
-        for (Street street : streets) {
-            if (street.getId() == id) return street;
-        }
-        throw new SimulatorException(String.format(NOT_FOUND, STREET, id));
-    }
-
-    public Crossing getCrossingFromIncomingStreetId(int id) {
-        for (Crossing crossing : crossings) {
-            if (crossing.getIncomingStreets().contains(id))
-                return crossing;
-        }
-        throw new SimulatorException(String.format(NOT_FOUND, CROSSING, id));
-    }
-
+    /**
+     * Returns the car from its id.
+     * @param id - The id of the car
+     * @return the car from its id
+     */
     public Car getCarFromId(int id) {
         for (Car car : cars) {
             if (car.getId() == id) return car;
@@ -150,14 +196,26 @@ public class Map {
         throw new SimulatorException(String.format(NOT_FOUND, CAR, id));
     }
 
+    /**
+     * Returns the streets.
+     * @return the streets
+     */
     public List<Street> getStreets() {
         return streets;
     }
 
+    /**
+     * Returns the crossings.
+     * @return the crossings
+     */
     public List<Crossing> getCrossings() {
         return crossings;
     }
 
+    /**
+     * Returns the cars.
+     * @return the cars
+     */
     public List<Car> getCars() {
         return cars;
     }

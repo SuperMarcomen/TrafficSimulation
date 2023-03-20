@@ -3,14 +3,29 @@ package edu.kit.informatik.entities;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * A class to handle the traffic simulation, like the driving
+ * of cars and the updating of crossings.
+ *
+ * @author uswry
+ * @version 1.0
+ */
 public class Simulation {
 
     private final Map map;
 
+    /**
+     * Initializes the needed instance of Map.
+     * @param map - An instance of Map
+     */
     public Simulation(Map map) {
         this.map = map;
     }
 
+    /**
+     * Simulates the given amounts of ticks.
+     * @param ticks - The amount of ticks to simulate
+     */
     public void simulate(int ticks) {
         for (int i = 0; i < ticks; i++) {
             simulate();
@@ -27,7 +42,8 @@ public class Simulation {
                 updateCarSpeed(car, street);
                 simulateCar(car, street, car.getSpeed());
                 car.setUpdated(true);
-                if (car.getPosition() == position || (position == street.getLength() && car.hasTurned() && car.getPosition() == 0)) {
+                if (car.getPosition() == position
+                        || (position == street.getLength() && car.hasTurned() && car.getPosition() == 0)) {
                     car.setSpeed(0);
                 }
             }
@@ -55,7 +71,9 @@ public class Simulation {
     }
 
     private void updateCarSpeed(Car car, Street street) {
-        int speed = Math.min(car.getSpeed() + car.getAcceleration(), Math.min(car.getWantedSpeed(), street.getMaxSpeed()));
+        int speed = Math.min(
+                car.getSpeed() + car.getAcceleration(),
+                Math.min(car.getWantedSpeed(), street.getMaxSpeed()));
         car.setSpeed(speed);
     }
 
@@ -116,53 +134,62 @@ public class Simulation {
         Car[] precedingCars;
         int restingDistance = distance;
         int newPosition = car.getPosition();
-        do {
-            precedingCars = getTwoPrecedingCars(car, carsOnStreet);
-            if (precedingCars[0] == null) {
-                newPosition += restingDistance;
-                restingDistance = 0;
-                break;
-            }
+        precedingCars = getTwoPrecedingCars(car, carsOnStreet);
+        // no car is in front
+        if (precedingCars[0] == null) {
+            newPosition += restingDistance;
+            restingDistance = 0;
+            car.setPosition(newPosition);
+            return restingDistance;
+        }
 
-            if ((precedingCars[0].getPosition() - map.getMinimalDistance()) >= (newPosition + restingDistance)) {
-                newPosition += restingDistance;
-                restingDistance = 0;
-                break;
-            }
+        // there is enough distance to the car in front to drive the entire distance
+        if ((precedingCars[0].getPosition() - map.getMinimalDistance()) >= (newPosition + restingDistance)) {
+            newPosition += restingDistance;
+            restingDistance = 0;
+            car.setPosition(newPosition);
+            return restingDistance;
+        }
 
-            if (!street.isMultipleLane() || car.hasOvertaken()) {
-                newPosition = precedingCars[0].getPosition() - map.getMinimalDistance();
-                restingDistance -= newPosition - car.getPosition();
-                break;
-            }
+        // there is not enough distance and the car can not overtake
+        if (!street.isMultipleLane() || car.hasOvertaken()) {
+            newPosition = precedingCars[0].getPosition() - map.getMinimalDistance();
+            restingDistance -= newPosition - car.getPosition();
+            car.setPosition(newPosition);
+            return restingDistance;
+        }
 
-            if ((newPosition + restingDistance) - map.getMinimalDistance() < precedingCars[0].getPosition()) {
-                newPosition = precedingCars[0].getPosition() - map.getMinimalDistance();
-                restingDistance -= newPosition - car.getPosition();
-                break;
-            }
+        // car can overtake but can not respect the minimal distance (No overtake)
+        if ((newPosition + restingDistance) - map.getMinimalDistance() < precedingCars[0].getPosition()) {
+            newPosition = precedingCars[0].getPosition() - map.getMinimalDistance();
+            restingDistance -= newPosition - car.getPosition();
+            car.setPosition(newPosition);
+            return restingDistance;
+        }
 
-            if (precedingCars[1] == null) {
-                newPosition += restingDistance;
-                restingDistance = 0;
-                break;
-            }
+        // car can overtake respecting the minimal distance and there is no car in front of the other
+        if (precedingCars[1] == null) {
+            newPosition += restingDistance;
+            restingDistance = 0;
+            car.setPosition(newPosition);
+            return restingDistance;
+        }
 
-            int distanceBetweenNextCars = precedingCars[1].getPosition() - precedingCars[0].getPosition();
-            if (distanceBetweenNextCars < 2 * map.getMinimalDistance()) {
-                newPosition = precedingCars[0].getPosition() - map.getMinimalDistance();
-                restingDistance -= newPosition - car.getPosition();
-                break;
-            }
+        int distanceBetweenNextCars = precedingCars[1].getPosition() - precedingCars[0].getPosition();
+        // there is not enough distance between the two preceding cars (No overtkake)
+        if (distanceBetweenNextCars < 2 * map.getMinimalDistance()) {
+            newPosition = precedingCars[0].getPosition() - map.getMinimalDistance();
+            restingDistance -= newPosition - car.getPosition();
+            car.setPosition(newPosition);
+            return restingDistance;
+        }
 
-            car.setOvertaken(true);
-            int distanceDriven = precedingCars[0].getPosition() - car.getPosition() + map.getMinimalDistance();
-            restingDistance = drive(car, distance - distanceDriven, street);
-            newPosition += distance - restingDistance;
+        // car overtakes and tries to keep driving
+        int distanceDriven = precedingCars[0].getPosition() - car.getPosition() + map.getMinimalDistance();
+        car.setOvertaken(true);
+        car.setPosition(newPosition + distanceDriven);
+        restingDistance = drive(car, distance - distanceDriven, street);
 
-        } while (restingDistance > 0);
-
-        car.setPosition(newPosition);
         return restingDistance;
     }
 
@@ -191,6 +218,10 @@ public class Simulation {
         cars.sort(Comparator.comparing(Car::getPosition).reversed());
     }
 
+    /**
+     * Returns the map.
+     * @return the map
+     */
     public Map getMap() {
         return map;
     }

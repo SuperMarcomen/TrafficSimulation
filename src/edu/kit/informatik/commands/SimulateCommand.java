@@ -6,6 +6,12 @@ import edu.kit.informatik.news.Observer;
 
 import java.util.List;
 
+/**
+ * A class to handle the simulate command.
+ *
+ * @author uswry
+ * @version 1.0
+ */
 public class SimulateCommand extends InputCommand implements Observer {
 
     private static final String ARGUMENT_REGEX = "\\d+";
