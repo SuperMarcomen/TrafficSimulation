@@ -9,6 +9,13 @@ package edu.kit.informatik.entities;
 public class Street extends SimulationEntity {
 
     private static final String ARGUMENT_REGEX = "\\d+-->\\d+:\\d+m,[1-2]x,\\d{1,2}max";
+    private static final int MIN_ID = 0;
+    private static final int MIN_LENGTH = 10;
+    private static final int MAX_LENGTH = 10000;
+    private static final int SINGLE_LANE = 1;
+    private static final int MULTIPLE_LANE = 2;
+    private static final int MIN_SPEED = 5;
+    private static final int MAX_SPEED = 40;
     private final int id;
     private final int startNode;
     private final int endNode;
@@ -27,11 +34,11 @@ public class Street extends SimulationEntity {
         super(arguments, ARGUMENT_REGEX);
         this.id = id;
         String[] args = arguments.split("\\D+");
-        startNode = parseNumber(args[0], ID, 0, Integer.MAX_VALUE);
-        endNode = parseNumber(args[1], ID, 0, Integer.MAX_VALUE);
-        length = parseNumber(args[2], LENGTH, 10, 10000);
-        multipleLane = parseNumber(args[3], STREET_TYPE, 1, 2) == 2;
-        maxSpeed = parseNumber(args[4], SPEED, 5, 40);
+        startNode = parseNumber(args[0], ID, MIN_ID, Integer.MAX_VALUE);
+        endNode = parseNumber(args[1], ID, MIN_ID, Integer.MAX_VALUE);
+        length = parseNumber(args[2], LENGTH, MIN_LENGTH, MAX_LENGTH);
+        multipleLane = parseNumber(args[3], STREET_TYPE, SINGLE_LANE, MULTIPLE_LANE) == MULTIPLE_LANE;
+        maxSpeed = parseNumber(args[4], SPEED, MIN_SPEED, MAX_SPEED);
     }
 
     /**
