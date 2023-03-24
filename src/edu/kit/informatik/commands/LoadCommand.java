@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class LoadCommand extends InputCommand {
 
-    private static final String ARGUMENT_REGEX = ".+";
+    private static final String ARGUMENT_REGEX = "\\S+";
     private static final String CORRECT_FORMAT = "A path is required";
     private static final String READY = "READY";
     private final Notifier notifier;
