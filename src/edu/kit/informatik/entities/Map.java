@@ -219,4 +219,12 @@ public class Map {
     public List<Car> getCars() {
         return cars;
     }
+
+    /**
+     * Returns the maximum number of streets for a crossing.
+     * @return the maximum number of streets for a crossing
+     */
+    public static int getMaxStreets() {
+        return MAX_STREETS;
+    }
 }

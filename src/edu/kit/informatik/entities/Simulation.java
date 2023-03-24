@@ -42,7 +42,7 @@ public class Simulation {
                 updateCarSpeed(car, street);
                 simulateCar(car, street, car.getSpeed());
                 car.setUpdated(true);
-                if (car.getPosition() == position
+                if (!car.hasTurned() && car.getPosition() == position
                         || (position == street.getLength() && car.hasTurned() && car.getPosition() == 0)) {
                     car.setSpeed(0);
                 }
@@ -122,7 +122,7 @@ public class Simulation {
         car.setPosition(0);
         int newDesiredDirection = car.getDesiredDirection();
         newDesiredDirection++;
-        if (newDesiredDirection == 3) newDesiredDirection = 0;
+        if (newDesiredDirection == Map.getMaxStreets()) newDesiredDirection = 0;
         car.setDesiredDirection(newDesiredDirection);
         car.setTurned(true);
         return true;
@@ -152,7 +152,7 @@ public class Simulation {
         }
 
         // there is not enough distance and the car can not overtake
-        if (!street.isMultipleLane() || car.hasOvertaken()) {
+        if (!street.isMultipleLane() || car.hasOvertaken() || car.hasTurned()) {
             newPosition = precedingCars[0].getPosition() - map.getMinimalDistance();
             restingDistance -= newPosition - car.getPosition();
             car.setPosition(newPosition);

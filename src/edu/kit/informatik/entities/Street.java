@@ -34,11 +34,12 @@ public class Street extends SimulationEntity {
         super(arguments, ARGUMENT_REGEX);
         this.id = id;
         String[] args = arguments.split("\\D+");
-        startNode = parseNumber(args[0], ID, MIN_ID, Integer.MAX_VALUE);
-        endNode = parseNumber(args[1], ID, MIN_ID, Integer.MAX_VALUE);
-        length = parseNumber(args[2], LENGTH, MIN_LENGTH, MAX_LENGTH);
-        multipleLane = parseNumber(args[3], STREET_TYPE, SINGLE_LANE, MULTIPLE_LANE) == MULTIPLE_LANE;
-        maxSpeed = parseNumber(args[4], SPEED, MIN_SPEED, MAX_SPEED);
+        int readIndex = 0;
+        startNode = parseNumber(args[readIndex++], ID, MIN_ID, Integer.MAX_VALUE);
+        endNode = parseNumber(args[readIndex++], ID, MIN_ID, Integer.MAX_VALUE);
+        length = parseNumber(args[readIndex++], LENGTH, MIN_LENGTH, MAX_LENGTH);
+        multipleLane = parseNumber(args[readIndex++], STREET_TYPE, SINGLE_LANE, MULTIPLE_LANE) == MULTIPLE_LANE;
+        maxSpeed = parseNumber(args[readIndex], SPEED, MIN_SPEED, MAX_SPEED);
     }
 
     /**

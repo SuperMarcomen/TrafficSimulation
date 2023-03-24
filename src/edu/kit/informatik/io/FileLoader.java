@@ -5,6 +5,7 @@ import edu.kit.informatik.exceptions.SimulatorException;
 import edu.kit.kastel.trafficsimulation.io.SimulationFileLoader;
 
 import java.io.IOException;
+import java.nio.file.InvalidPathException;
 import java.util.List;
 
 /**
@@ -26,7 +27,7 @@ public class FileLoader {
     public FileLoader(String path) {
         try {
             simulationFileLoader = new SimulationFileLoader(path);
-        } catch (IOException exception) {
+        } catch (IOException | InvalidPathException exception) {
             throw new SimulatorException(exception.getMessage());
         }
     }
